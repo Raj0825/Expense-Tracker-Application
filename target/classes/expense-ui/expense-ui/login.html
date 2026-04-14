@@ -1,0 +1,104 @@
+<script>
+    const API = 'http://localhost:5000/api';
+
+    function switchTab(t){
+      document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',i===(t==='login'?0:1)));
+      document.getElementById('loginForm').classList.toggle('active',t==='login');
+      document.getElementById('registerForm').classList.toggle('active',t==='register');
+    }
+
+    function setLoading(btnId, val){
+      const el = document.getElementById(btnId);
+      if(!el) return;
+      if(!el.hasOwnProperty('_orig')) el._orig = el.innerHTML;
+
+      el.disabled = val;
+      el.innerHTML = val ? '<span class="spinner"></span> Processing...' : el._orig;
+    }
+
+    async function doLogin(){
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const err = document.getElementById('loginError');
+      err.classList.remove('show');
+
+      if(!email || !password){
+        err.textContent = 'Please fill in all fields';
+        err.classList.add('show');
+        return;
+      }
+
+      setLoading('loginBtn', true);
+      try {
+        const r = await fetch(`${API}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const d = await r.json();
+        if(!d.success) throw new Error(d.message || 'Login failed');
+
+        localStorage.setItem('token', d.token);
+        localStorage.setItem('user', JSON.stringify(d.user));
+        window.location.href = 'dashboard.html';
+      } catch(e) {
+        err.textContent = e.message;
+        err.classList.add('show');
+      } finally {
+        setLoading('loginBtn', false);
+      }
+    }
+
+    async function doRegister(){
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPassword').value;
+      const currency = document.getElementById('regCurrency').value;
+      const monthlyBudget = parseFloat(document.getElementById('regBudget').value) || 0;
+      const err = document.getElementById('registerError');
+      err.classList.remove('show');
+
+      if(!name || !email || !password){
+        err.textContent = 'Please fill in all required fields';
+        err.classList.add('show');
+        return;
+      }
+      if(password.length < 6){
+        err.textContent = 'Password must be at least 6 characters';
+        err.classList.add('show');
+        return;
+      }
+
+      setLoading('registerBtn', true);
+      try {
+        const r = await fetch(`${API}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password, currency, monthlyBudget })
+        });
+        const d = await r.json();
+        if(!d.success) throw new Error(d.message || 'Registration failed');
+
+        localStorage.setItem('token', d.token);
+        localStorage.setItem('user', JSON.stringify(d.user));
+        window.location.href = 'dashboard.html';
+      } catch(e) {
+        err.textContent = e.message;
+        err.classList.add('show');
+      } finally {
+        setLoading('registerBtn', false);
+      }
+    }
+
+    // Improved Enter Key Support
+    document.addEventListener('keydown', e => {
+      if(e.key === 'Enter') {
+        const isLoginActive = document.getElementById('loginForm').classList.contains('active');
+        if(isLoginActive) doLogin();
+        else doRegister();
+      }
+    });
+
+    // Auto-redirect if already logged in
+    if(localStorage.getItem('token')) window.location.href = 'dashboard.html';
+</script>

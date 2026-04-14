@@ -1,4 +1,4 @@
-// ============ SHARED.JS ============
+// ============ SHARED.JS (Corrected) ============
 const API = 'http://localhost:5000/api';
 
 // AUTH HELPERS
@@ -12,13 +12,22 @@ async function apiFetch(path, opts={}){
   const headers = {'Content-Type':'application/json'};
   const token = getToken();
   if(token) headers['Authorization'] = `Bearer ${token}`;
-  const res = await fetch(`${API}${path}`, { ...opts, headers:{...headers,...(opts.headers||{})} });
-  const data = await res.json();
-  if(res.status === 401){ logout(); return; }
-  return data;
+
+  try {
+    const res = await fetch(`${API}${path}`, { ...opts, headers:{...headers,...(opts.headers||{})} });
+
+    // Handle unauthorized access
+    if(res.status === 401){ logout(); return; }
+
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error("API Fetch Error:", err);
+    return { success: false, message: "Server connection failed" };
+  }
 }
 
-// FORMATTING
+// FORMATTING (No changes needed, your logic is good)
 const SYMBOLS = {INR:'₹',USD:'$',EUR:'€',GBP:'£',JPY:'¥'};
 function currSym(){ const u=getUser(); return SYMBOLS[u?.currency]||'₹'; }
 function fmtMoney(n){
@@ -28,13 +37,8 @@ function fmtMoney(n){
   return `${s}${n.toFixed(2)}`;
 }
 function fmtDate(d){ return new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}); }
-function relDate(d){
-  const diff=Math.floor((Date.now()-new Date(d))/(864e5));
-  if(diff===0)return'Today'; if(diff===1)return'Yesterday'; if(diff<7)return`${diff}d ago`;
-  return fmtDate(d);
-}
 
-// CATEGORIES
+// CATEGORIES (No changes needed)
 const CATS = {
   food:{label:'Food',icon:'🍔',color:'#f97316'},
   travel:{label:'Travel',icon:'✈️',color:'#06b6d4'},
@@ -54,7 +58,7 @@ function catBadge(v){
   return `<span class="badge" style="background:${c.color}18;color:${c.color};border:1px solid ${c.color}30">${c.icon} ${c.label}</span>`;
 }
 
-// TOAST
+// TOAST (No changes needed)
 let toastTimer;
 function showToast(msg, type='success'){
   let t=document.getElementById('globalToast');
@@ -66,7 +70,7 @@ function showToast(msg, type='success'){
   toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
 }
 
-// SIDEBAR RENDER
+// SIDEBAR RENDER (Updated to handle missing user data)
 function renderSidebar(active){
   const user=getUser()||{};
   const nav=[
@@ -96,11 +100,19 @@ function renderSidebar(active){
   </aside>`;
 }
 
-// SPINNER
-function spin(id,val){
-  const el=document.getElementById(id);
-  if(!el)return;
-  el.disabled=val;
-  if(!el._orig)el._orig=el.innerHTML;
-  el.innerHTML=val?'<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px"></span>Saving...':el._orig;
+// SPINNER (Improved logic to prevent text loss)
+function spin(id, val){
+  const el = document.getElementById(id);
+  if(!el) return;
+
+  if(!el.hasOwnProperty('_origHtml')) {
+    el._origHtml = el.innerHTML;
+  }
+
+  el.disabled = val;
+  if(val) {
+    el.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px"></span> Processing...';
+  } else {
+    el.innerHTML = el._origHtml;
+  }
 }

@@ -1,10 +1,18 @@
 // ============ SHARED.JS (Corrected) ============
-const API = 'http://localhost:5000/api';
+// In login.html and shared.js
+const API = 'http://localhost:8080/api';
 
 // AUTH HELPERS
 function getToken(){ return localStorage.getItem('token'); }
 function getUser(){ try{return JSON.parse(localStorage.getItem('user'));}catch{return null;} }
-function requireAuth(){ if(!getToken()){ window.location.href='login.html'; return false; } return true; }
+// Current check
+function requireAuth(){
+  if(!getToken()){
+    window.location.href='login.html'; // This is fine
+    return false;
+  } 
+  return true;
+}
 function logout(){ localStorage.clear(); window.location.href='login.html'; }
 
 // API HELPER

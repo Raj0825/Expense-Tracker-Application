@@ -35,7 +35,7 @@ public class AuthController {
     }
 
     // PUT /api/auth/update
-    @PutMapping("/update")
+    @PutMapping("/update") 
     public ResponseEntity<AuthResponse> updateProfile(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody UpdateProfileRequest req) {

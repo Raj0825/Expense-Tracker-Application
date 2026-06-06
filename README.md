@@ -6,17 +6,9 @@
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.0-brightgreen?style=flat-square&logo=springboot)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0-blue?style=flat-square&logo=mysql)
 ![JWT](https://img.shields.io/badge/Auth-JWT-yellow?style=flat-square)
-![License](https://img.shields.io/badge/License-MIT-purple?style=flat-square)
 
 ---
 
-## 📸 Screenshots
-
-| Dashboard | Add Expense |
-|-----------|-------------|
-| Dark dashboard with stat cards, bar chart, donut pie chart | Add expense form with category selector and payment method |
-
----
 
 ## ✨ Features
 
@@ -315,15 +307,10 @@ Token lasts 30 days by default. Logout and login again.
 
 ## 👨‍💻 Developer
 
-**Raj** — TY B.Tech CSE Student  
+**Raj Shah** — TY B.Tech CSE Student  
 Walchand Institute of Technology, Solapur
 
----
-
-## 📄 License
-
-This project is licensed under the MIT License — feel free to use it for learning and personal projects.
 
 ---
 
-> Built with ❤️ using Spring Boot + MySQL + Vanilla JS
+> Built with ❤️ using Java + Spring Boot + MySQL + Vanilla JS

@@ -5,7 +5,7 @@ const API = 'https://spendsmart-api-ooqh.onrender.com/api';
 function getToken(){ return localStorage.getItem('token'); }
 function getUser(){ try{return JSON.parse(localStorage.getItem('user'));}catch{return null;} }
 function requireAuth(){
-  if(!getToken()){ window.location.href='/login.html'; return false; }
+  if(!getToken()){ window.location.href='/Expense-Tracker-Application/login.html'; return false; }
   return true;
 }
 function logout(){ localStorage.clear(); window.location.href='/login.html'; }

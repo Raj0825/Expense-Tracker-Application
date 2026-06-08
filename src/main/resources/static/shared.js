@@ -79,12 +79,12 @@ function renderSidebar(active){
   const user=getUser()||{};
   const initial=(user.name||'U')[0].toUpperCase();
   const nav=[
-    {id:'dashboard',icon:'📊',label:'Dashboard',href:'/dashboard.html'},
-    {id:'expenses',icon:'💳',label:'Expenses',href:'/expenses.html'},
-    {id:'add',icon:'➕',label:'Add Expense',href:'/add-expense.html'},
-    {id:'reports',icon:'📈',label:'Monthly Reports',href:'/reports.html'},
-    {id:'suggestions',icon:'💡',label:'Suggestions',href:'/suggestions.html'},
-    {id:'settings',icon:'⚙️',label:'Settings',href:'/profile.html'},
+      {id:'dashboard',icon:'📊',label:'Dashboard',href:'/Expense-Tracker-Application/dashboard.html'},
+      {id:'expenses',icon:'💳',label:'Expenses',href:'/Expense-Tracker-Application/expenses.html'},
+      {id:'add',icon:'➕',label:'Add Expense',href:'/Expense-Tracker-Application/add-expense.html'},
+      {id:'reports',icon:'📈',label:'Monthly Reports',href:'/Expense-Tracker-Application/reports.html'},
+      {id:'suggestions',icon:'💡',label:'Suggestions',href:'/Expense-Tracker-Application/suggestions.html'},
+      {id:'settings',icon:'⚙️',label:'Settings',href:'/Expense-Tracker-Application/profile.html'},
   ];
   return `
   <aside class="sidebar">

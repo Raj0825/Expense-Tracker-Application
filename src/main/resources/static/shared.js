@@ -8,7 +8,7 @@ function requireAuth(){
   if(!getToken()){ window.location.href='/Expense-Tracker-Application/login.html'; return false; }
   return true;
 }
-function logout(){ localStorage.clear(); window.location.href='/login.html'; }
+function logout(){ localStorage.clear(); window.location.href='/Expense-Tracker-Application/login.html'; }
 
 // API HELPER
 async function apiFetch(path, opts={}){

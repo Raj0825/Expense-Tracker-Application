@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>SpendSmart — Add Expense</title>
+    <link rel="stylesheet" href="shared.css">
+    <style>
+        .form-wrap{max-width:640px;margin:0 auto}
+
+        /* Selected category hero banner */
+        .cat-hero{
+          border-radius:14px;padding:16px 20px;
+          display:flex;align-items:center;gap:14px;
+          margin-bottom:20px;transition:.3s;
+          background:rgba(124,92,252,.08);border:1px solid rgba(124,92,252,.2);
+          min-height:68px;
+        }
+        .cat-hero-icon{font-size:28px}
+        .cat-hero-label{font-family:'Syne',sans-serif;font-size:15px;font-weight:700}
+        .cat-hero-sub{font-size:11px;color:var(--muted);margin-top:2px}
+
+        /* Category grid */
+        .cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:6px}
+        .cat-btn{
+          background:var(--input);border:1px solid var(--border);
+          border-radius:11px;padding:11px 8px;
+          cursor:pointer;text-align:center;transition:.15s;color:var(--text);
+        }
+        .cat-btn:hover{border-color:rgba(124,92,252,.4);background:rgba(124,92,252,.06)}
+        .cat-btn.selected{background:rgba(124,92,252,.12);border-color:var(--accent)}
+        .cat-btn .ci{font-size:20px;display:block;margin-bottom:4px}
+        .cat-btn .cl{font-size:10px;font-weight:600;color:var(--text2)}
+        .cat-btn.selected .cl{color:var(--accent)}
+
+        /* Payment buttons */
+        .pay-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+        .pay-btn{
+          background:var(--input);border:1px solid var(--border);
+          border-radius:11px;padding:10px 6px;
+          cursor:pointer;text-align:center;transition:.15s;color:var(--text);
+        }
+        .pay-btn:hover{border-color:rgba(34,211,165,.4)}
+        .pay-btn.selected{background:rgba(34,211,165,.1);border-color:var(--accent2);color:var(--accent2)}
+        .pay-btn .pi{font-size:17px;display:block;margin-bottom:3px}
+        .pay-btn .pl{font-size:10px;font-weight:600}
+
+        /* Field row */
+        .field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+        /* Tags */
+        .tag-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+        .tag{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(124,92,252,.1);border:1px solid rgba(124,92,252,.2);border-radius:20px;font-size:11px;color:var(--accent)}
+        .tag button{background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px;padding:0;line-height:1}
+
+        /* Save button */
+        .save-row{display:flex;gap:10px;margin-top:22px}
+        .save-btn{
+          flex:1;padding:15px;
+          background:linear-gradient(135deg,var(--accent),#5b3ef0);
+          border:none;border-radius:13px;
+          color:#fff;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;
+          cursor:pointer;transition:.2s;
+        }
+        .save-btn:hover{transform:translateY(-1px);box-shadow:0 8px 30px var(--accent-glow)}
+        .save-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+        /* Amount input big */
+        .amount-input-big{
+          font-family:'Syne',sans-serif!important;font-size:32px!important;
+          font-weight:800!important;color:var(--accent)!important;
+          text-align:center!important;padding:18px!important;letter-spacing:-1px!important;
+        }
+    </style>
+</head>
+<body>
+<div id="sidebar-root"></div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+    <div class="topbar-left">
+        <div class="page-title" id="pageTitle">Add Expense</div>
+        <div class="page-sub" id="pageSub">Record a new expense</div>
+    </div>
+    <div class="topbar-right">
+        <a href="/add-expense.html" class="btn-primary">+ Add Expense</a>
+    </div>
+</div>
+
+<main class="main">
+    <div class="form-wrap">
+
+        <!-- SELECTED CATEGORY HERO -->
+        <div class="cat-hero" id="catHero">
+            <div class="cat-hero-icon" id="catHeroIcon">📦</div>
+            <div>
+                <div class="cat-hero-label" id="catHeroLabel">Select a category</div>
+                <div class="cat-hero-sub">Selected category</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <!-- TITLE -->
+            <div class="field">
+                <label>Title *</label>
+                <input type="text" id="title" placeholder="e.g. Lunch at restaurant" maxlength="100">
+            </div>
+
+            <!-- AMOUNT + DATE -->
+            <div class="field-row">
+                <div class="field">
+                    <label>Amount (INR) *</label>
+                    <input type="number" id="amount" min="0.01" step="0.01" placeholder="0.00"
+                           class="amount-input-big" style="font-size:20px!important;text-align:left!important;padding:12px 14px!important"
+                           oninput="updateAmt()">
+                </div>
+                <div class="field">
+                    <label>Date *</label>
+                    <input type="date" id="date">
+                </div>
+            </div>
+
+            <!-- CATEGORY -->
+            <div class="field">
+                <label>Category *</label>
+                <div class="cat-grid" id="catGrid"></div>
+                <input type="hidden" id="category">
+            </div>
+
+            <!-- PAYMENT METHOD -->
+            <div class="field">
+                <label>Payment Method</label>
+                <div class="pay-grid" id="payGrid"></div>
+                <input type="hidden" id="paymentMethod" value="cash">
+            </div>
+
+            <!-- DESCRIPTION -->
+            <div class="field">
+                <label>Description (optional)</label>
+                <textarea id="description" rows="2" placeholder="Any notes..." maxlength="500" style="resize:vertical"></textarea>
+            </div>
+
+            <!-- RECURRING + TAGS -->
+            <div class="field-row">
+                <div class="field">
+                    <label style="display:flex;align-items:center;gap:7px;cursor:pointer">
+                        <input type="checkbox" id="isRecurring" style="width:auto" onchange="toggleRecurring()">
+                        Recurring Expense
+                    </label>
+                    <div id="recurringOpt" style="display:none;margin-top:10px">
+                        <select id="recurringFrequency">
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly" selected>Monthly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Tags (press Enter)</label>
+                    <input type="text" id="tagInput" placeholder="Add tag..." onkeydown="addTag(event)">
+                    <div class="tag-wrap" id="tagList"></div>
+                </div>
+            </div>
+
+            <!-- BUTTONS -->
+            <div class="save-row">
+                <a href="/expenses.html" class="btn-ghost"
+                   style="padding:15px 22px;text-decoration:none;text-align:center;border-radius:13px;font-size:14px;display:flex;align-items:center;justify-content:center">
+                    Cancel
+                </a>
+                <button class="save-btn" id="saveBtn" onclick="saveExpense()">Save Expense</button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="shared.js"></script>
+<script>
+    if(!requireAuth())throw'';
+    document.getElementById('sidebar-root').innerHTML = renderSidebar('add');
+
+    const urlId = new URLSearchParams(location.search).get('id');
+    let tags = [];
+    document.getElementById('date').value = new Date().toISOString().split('T')[0];
+
+    // Category buttons
+    const CATS_LIST=[
+      {v:'food',i:'🍔',l:'Food & Dining'},{v:'travel',i:'✈️',l:'Travel'},
+      {v:'clothes',i:'👗',l:'Clothes'},{v:'bills',i:'⚡',l:'Bills & Utilities'},
+      {v:'entertainment',i:'🎬',l:'Entertainment'},{v:'health',i:'💊',l:'Health & Fitness'},
+      {v:'education',i:'📚',l:'Education'},{v:'shopping',i:'🛍️',l:'Shopping'},
+      {v:'housing',i:'🏠',l:'Housing & Rent'},{v:'personal',i:'💆',l:'Personal Care'},
+      {v:'other',i:'📦',l:'Other'}
+    ];
+    document.getElementById('catGrid').innerHTML = CATS_LIST.map(c=>
+      `<button type="button" class="cat-btn" data-val="${c.v}" onclick="selCat('${c.v}','${c.i}','${c.l}',this)">
+        <span class="ci">${c.i}</span><span class="cl">${c.l}</span>
+      </button>`
+    ).join('');
+
+    const PAYS=[
+      {v:'cash',i:'💵',l:'Cash'},{v:'card',i:'💳',l:'Card'},
+      {v:'upi',i:'📱',l:'UPI'},{v:'netbanking',i:'🏦',l:'Net Banking'},
+      {v:'other',i:'💰',l:'Other'}
+    ];
+    document.getElementById('payGrid').innerHTML = PAYS.map(p=>
+      `<button type="button" class="pay-btn${p.v==='cash'?' selected':''}" onclick="selPay('${p.v}',this)">
+        <span class="pi">${p.i}</span><span class="pl">${p.l}</span>
+      </button>`
+    ).join('');
+
+    function selCat(v, icon, label, el){
+      document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('selected'));
+      el.classList.add('selected');
+      document.getElementById('category').value = v;
+      // Update hero
+      const cat = getCat(v);
+      document.getElementById('catHeroIcon').textContent = icon;
+      document.getElementById('catHeroLabel').textContent = label;
+      document.getElementById('catHero').style.background = `${cat.color}12`;
+      document.getElementById('catHero').style.borderColor = `${cat.color}30`;
+    }
+
+    function selPay(v, el){
+      document.querySelectorAll('.pay-btn').forEach(b=>b.classList.remove('selected'));
+      el.classList.add('selected');
+      document.getElementById('paymentMethod').value = v;
+    }
+
+    function updateAmt(){
+      const v = parseFloat(document.getElementById('amount').value);
+      if(v>999){
+        document.getElementById('amount').style.color = 'var(--accent2)';
+      } else {
+        document.getElementById('amount').style.color = 'var(--accent)';
+      }
+    }
+
+    function toggleRecurring(){
+      document.getElementById('recurringOpt').style.display =
+        document.getElementById('isRecurring').checked ? 'block' : 'none';
+    }
+
+    function addTag(e){
+      if(e.key!=='Enter')return; e.preventDefault();
+      const v = document.getElementById('tagInput').value.trim();
+      if(v && !tags.includes(v)){ tags.push(v); renderTags(); }
+      document.getElementById('tagInput').value='';
+    }
+    function removeTag(i){ tags.splice(i,1); renderTags(); }
+    function renderTags(){
+      document.getElementById('tagList').innerHTML = tags.map((t,i)=>
+        `<span class="tag">${t}<button onclick="removeTag(${i})">✕</button></span>`
+      ).join('');
+    }
+
+    // Load existing
+    if(urlId){
+      document.getElementById('pageTitle').textContent='Edit Expense';
+      document.getElementById('pageSub').textContent='Update this transaction';
+      document.getElementById('saveBtn').textContent='Update Expense';
+      (async()=>{
+        const d = await apiFetch(`/expenses/${urlId}`);
+        if(!d)return;
+        const e = d.expense||d;
+        document.getElementById('amount').value = e.amount;
+        document.getElementById('title').value = e.title;
+        document.getElementById('date').value = e.date?.split('T')[0]||'';
+        document.getElementById('description').value = e.description||'';
+        document.getElementById('category').value = e.category;
+        document.getElementById('paymentMethod').value = e.paymentMethod||'cash';
+        document.getElementById('isRecurring').checked = e.isRecurring||false;
+        if(e.isRecurring&&e.recurringFrequency){
+          document.getElementById('recurringOpt').style.display='block';
+          document.getElementById('recurringFrequency').value=e.recurringFrequency;
+        }
+        tags=e.tags||[]; renderTags(); updateAmt();
+        // Restore selections
+        document.querySelectorAll('.cat-btn').forEach(b=>{
+          if(b.dataset.val===e.category){
+            b.classList.add('selected');
+            const cat=getCat(e.category);
+            document.getElementById('catHeroIcon').textContent=cat.icon;
+            document.getElementById('catHeroLabel').textContent=cat.label;
+            document.getElementById('catHero').style.background=`${cat.color}12`;
+            document.getElementById('catHero').style.borderColor=`${cat.color}30`;
+          }
+        });
+        document.querySelectorAll('.pay-btn').forEach(b=>{
+          b.classList.remove('selected');
+          if(b.getAttribute('onclick').includes(`'${e.paymentMethod||'cash'}'`))b.classList.add('selected');
+        });
+      })();
+    }
+
+    async function saveExpense(){
+      const amount = parseFloat(document.getElementById('amount').value);
+      const title = document.getElementById('title').value.trim();
+      const date = document.getElementById('date').value;
+      const category = document.getElementById('category').value;
+      const paymentMethod = document.getElementById('paymentMethod').value;
+      const description = document.getElementById('description').value.trim();
+      const isRecurring = document.getElementById('isRecurring').checked;
+      const recurringFrequency = isRecurring?document.getElementById('recurringFrequency').value:null;
+
+      if(!amount||amount<=0){showToast('Enter a valid amount','error');return;}
+      if(!title){showToast('Enter a title','error');return;}
+      if(!date){showToast('Select a date','error');return;}
+      if(!category){showToast('Select a category','error');return;}
+
+      const body={amount,title,date:new Date(date).toISOString(),category,paymentMethod,description,isRecurring,recurringFrequency,tags};
+      spin('saveBtn',true);
+      const method=urlId?'PUT':'POST';
+      const url=urlId?`/expenses/${urlId}`:'/expenses';
+      const d = await apiFetch(url,{method,body:JSON.stringify(body)});
+      spin('saveBtn',false);
+      if(d?.success||d?.id){
+        showToast(urlId?'Expense updated!':'Expense saved!');
+        setTimeout(()=>window.location.href='/expenses.html',800);
+      } else {
+        showToast(d?.message||'Failed to save','error');
+      }
+    }
+</script>
+</body>
+</html>

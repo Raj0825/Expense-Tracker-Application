@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SpendSmart — Reports</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+.period-nav{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+.period-btn{background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:10px 16px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;transition:.15s}
+.period-btn:hover{border-color:var(--accent)}
+.period-label{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;flex:1;text-align:center}
+.month-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+.month-tab{padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;transition:.15s;font-family:'DM Sans',sans-serif}
+.month-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.daily-chart{display:flex;align-items:flex-end;gap:3px;height:100px;padding-top:8px;overflow-x:auto}
+.day-bar{min-width:12px;border-radius:3px 3px 0 0;background:linear-gradient(180deg,var(--accent2),#0ea37a);min-height:2px;flex-shrink:0;transition:opacity .15s;cursor:pointer;position:relative}
+.day-bar:hover{opacity:.7}
+.day-bar::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#1e1e3a;padding:4px 8px;border-radius:6px;font-size:10px;white-space:nowrap;pointer-events:none;opacity:0;transition:.15s}
+.day-bar:hover::after{opacity:1}
+.cat-bar-row{margin-bottom:12px}
+.cat-bar-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px}
+.cat-bar-track{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.cat-bar-fill{height:100%;border-radius:4px;transition:width .6s ease}
+</style>
+</head>
+<body>
+<div id="sidebar-root"></div>
+<main class="main">
+  <div class="page-header"><div class="page-title">Monthly Reports</div><div class="page-sub">Analyze your spending patterns</div></div>
+
+  <!-- YEAR NAV -->
+  <div class="period-nav">
+    <button class="period-btn" onclick="changeYear(-1)">‹ Prev</button>
+    <div class="period-label" id="yearLabel">2024</div>
+    <button class="period-btn" onclick="changeYear(1)">Next ›</button>
+  </div>
+
+  <!-- MONTH TABS -->
+  <div class="month-tabs" id="monthTabs"></div>
+
+  <!-- MONTHLY STATS -->
+  <div class="stat-grid" id="monthStats" style="margin-bottom:20px"></div>
+
+  <div class="grid-2">
+    <!-- DAILY CHART -->
+    <div class="card">
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:14px">Daily Spending</div>
+      <div class="daily-chart" id="dailyChart"><div style="color:var(--muted);font-size:12px">Loading...</div></div>
+    </div>
+    <!-- CAT BREAKDOWN -->
+    <div class="card">
+      <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:14px">Category Breakdown</div>
+      <div id="catBars"><div style="color:var(--muted);font-size:12px">Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- TRANSACTIONS -->
+  <div class="card" style="margin-top:20px">
+    <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:16px">All Transactions This Month</div>
+    <div class="table-wrap">
+      <table id="txTable">
+        <thead><tr><th>Date</th><th>Title</th><th>Category</th><th>Payment</th><th style="text-align:right">Amount</th></tr></thead>
+        <tbody id="txBody"><tr><td colspan="5" style="color:var(--muted);text-align:center;padding:30px">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script src="shared.js"></script>
+<script>
+if(!requireAuth())throw'';
+document.getElementById('sidebar-root').innerHTML=renderSidebar('reports');
+const now=new Date();
+let year=now.getFullYear(), month=now.getMonth()+1;
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function buildMonthTabs(){
+  document.getElementById('yearLabel').textContent=year;
+  document.getElementById('monthTabs').innerHTML=MONTHS.map((m,i)=>
+    `<button class="month-tab${(i+1)===month?' active':''}" onclick="setMonth(${i+1})">${m}</button>`
+  ).join('');
+}
+
+function changeYear(d){ year+=d; if(month>12)month=12; buildMonthTabs(); loadReport(); }
+function setMonth(m){ month=m; buildMonthTabs(); loadReport(); }
+
+async function loadReport(){
+  const mS=document.getElementById('monthStats');
+  mS.innerHTML='<div style="color:var(--muted);font-size:12px">Loading...</div>';
+  document.getElementById('dailyChart').innerHTML='<div style="color:var(--muted);font-size:12px">Loading...</div>';
+  document.getElementById('catBars').innerHTML='<div style="color:var(--muted);font-size:12px">Loading...</div>';
+  const d=await apiFetch(`/expenses/summary/monthly/${year}/${month}`);
+  if(!d?.success){mS.innerHTML='<div style="color:var(--muted)">Failed to load</div>';return;}
+  const s=d.summary;
+
+  mS.innerHTML=`
+    <div class="stat-card purple"><div class="stat-label">Total Spent</div><div class="stat-value purple">${fmtMoney(s.totalAmount)}</div></div>
+    <div class="stat-card green"><div class="stat-label">Transactions</div><div class="stat-value green">${s.totalExpenses}</div></div>
+    <div class="stat-card orange"><div class="stat-label">Daily Average</div><div class="stat-value orange">${fmtMoney(s.totalExpenses?s.totalAmount/new Date(year,month,0).getDate():0)}</div></div>
+    <div class="stat-card red"><div class="stat-label">Top Category</div><div class="stat-value red" style="font-size:16px">${getTopCat(s.byCategory)}</div></div>`;
+
+  // Daily chart
+  const daysInMonth=new Date(year,month,0).getDate();
+  const daily=s.dailySpending||{};
+  const max=Math.max(...Object.values(daily),1);
+  document.getElementById('dailyChart').innerHTML=Array.from({length:daysInMonth},(_,i)=>{
+    const day=i+1, amt=daily[day]||0;
+    return `<div class="day-bar" style="height:${Math.max((amt/max)*100,2)}%" data-tip="${day}: ${fmtMoney(amt)}"></div>`;
+  }).join('');
+
+  // Cat bars
+  const cats=s.byCategory||{};
+  const total=s.totalAmount||1;
+  document.getElementById('catBars').innerHTML=Object.entries(cats).sort((a,b)=>b[1].total-a[1].total).map(([k,v])=>{
+    const c=getCat(k); const pct=((v.total/total)*100).toFixed(1);
+    return `<div class="cat-bar-row">
+      <div class="cat-bar-label"><span>${c.icon} ${c.label}</span><span>${fmtMoney(v.total)} (${pct}%)</span></div>
+      <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${pct}%;background:${c.color}"></div></div>
+    </div>`;
+  }).join('')||'<div style="color:var(--muted);font-size:12px">No data</div>';
+
+  // Table
+  const pay={cash:'💵',card:'💳',upi:'📱',netbanking:'🏦',other:'💰'};
+  document.getElementById('txBody').innerHTML=(s.expenses||[]).length?(s.expenses.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(e=>`
+    <tr>
+      <td style="color:var(--muted)">${fmtDate(e.date)}</td>
+      <td><b>${e.title}</b>${e.description?`<br><span style="font-size:11px;color:var(--muted)">${e.description}</span>`:''}</td>
+      <td>${catBadge(e.category)}</td>
+      <td>${pay[e.paymentMethod]||'💰'} ${e.paymentMethod}</td>
+      <td style="text-align:right;font-weight:700;color:var(--danger)">-${fmtMoney(e.amount)}</td>
+    </tr>`).join('')):`<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:30px">No transactions this month</td></tr>`;
+}
+
+function getTopCat(cats){
+  if(!cats||!Object.keys(cats).length)return'—';
+  const top=Object.entries(cats).sort((a,b)=>b[1].total-a[1].total)[0];
+  const c=getCat(top[0]);
+  return `${c.icon} ${c.label}`;
+}
+
+buildMonthTabs();
+loadReport();
+</script>
+</body>
+</html>

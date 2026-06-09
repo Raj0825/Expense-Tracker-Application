@@ -1,5 +1,5 @@
 // ============ SHARED.JS — SpendSmart ============
-const API = 'http://localhost:8080/api';
+const API = 'https://spendsmart-api-ooqh.onrender.com';
 
 // AUTH HELPERS
 function getToken(){ return localStorage.getItem('token'); }

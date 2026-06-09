@@ -111,7 +111,8 @@
 </div>
 
 <script>
-    const API = 'http://localhost:8080/api';
+    // Use relative URL for API calls - works on any domain
+    const API = '/api';
 
     function switchTab(t){
         document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',i===(t==='login'?0:1)));

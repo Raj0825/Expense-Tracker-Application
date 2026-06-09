@@ -1,14 +1,15 @@
 // ============ SHARED.JS — SpendSmart ============
-const API = 'https://spendsmart-api-ooqh.onrender.com/api';
+// Use relative URL - works on any domain
+const API = '/api';
 
 // AUTH HELPERS
 function getToken(){ return localStorage.getItem('token'); }
 function getUser(){ try{return JSON.parse(localStorage.getItem('user'));}catch{return null;} }
 function requireAuth(){
-  if(!getToken()){ window.location.href='/Expense-Tracker-Application/login.html'; return false; }
+  if(!getToken()){ window.location.href='/login.html'; return false; }
   return true;
 }
-function logout(){ localStorage.clear(); window.location.href='/Expense-Tracker-Application/login.html'; }
+function logout(){ localStorage.clear(); window.location.href='/login.html'; }
 
 // API HELPER
 async function apiFetch(path, opts={}){
@@ -79,12 +80,12 @@ function renderSidebar(active){
   const user=getUser()||{};
   const initial=(user.name||'U')[0].toUpperCase();
   const nav=[
-      {id:'dashboard',icon:'📊',label:'Dashboard',href:'/Expense-Tracker-Application/dashboard.html'},
-      {id:'expenses',icon:'💳',label:'Expenses',href:'/Expense-Tracker-Application/expenses.html'},
-      {id:'add',icon:'➕',label:'Add Expense',href:'/Expense-Tracker-Application/add-expense.html'},
-      {id:'reports',icon:'📈',label:'Monthly Reports',href:'/Expense-Tracker-Application/reports.html'},
-      {id:'suggestions',icon:'💡',label:'Suggestions',href:'/Expense-Tracker-Application/suggestions.html'},
-      {id:'settings',icon:'⚙️',label:'Settings',href:'/Expense-Tracker-Application/profile.html'},
+      {id:'dashboard',icon:'📊',label:'Dashboard',href:'/dashboard.html'},
+      {id:'expenses',icon:'💳',label:'Expenses',href:'/expenses.html'},
+      {id:'add',icon:'➕',label:'Add Expense',href:'/add-expense.html'},
+      {id:'reports',icon:'📈',label:'Monthly Reports',href:'/reports.html'},
+      {id:'suggestions',icon:'💡',label:'Suggestions',href:'/suggestions.html'},
+      {id:'settings',icon:'⚙️',label:'Settings',href:'/profile.html'},
   ];
   return `
   <aside class="sidebar">

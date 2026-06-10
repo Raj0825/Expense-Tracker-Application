@@ -35,12 +35,16 @@ public class User {
     private String password;
 
     @Column(length = 255)
+    @Builder.Default
     private String avatar = "";
 
+
     @Column(length = 10)
+    @Builder.Default
     private String currency = "INR";
 
     @Column(name = "monthly_budget")
+    @Builder.Default
     private Double monthlyBudget = 0.0;
 
     @CreationTimestamp

@@ -8,16 +8,15 @@
 ![JWT](https://img.shields.io/badge/Auth-JWT-yellow?style=flat-square)
 
 ---
-
-🌐 Live Demo
-
-URL🖥️ Frontendhttps://raj0825.github.io/Expense-Tracker-Application-Frontend/login.html
-⚙️ Backend APIhttps://spendsmart-api-ooqh.onrender.com/api/health
-🗄️ DatabaseAiven Cloud MySQL (Bangalore)
-
-⚠️ Note: Backend is on Render free tier — first request may take 30-60 seconds to wake up.
-
----
+## 🌐 Live Demo
+ 
+| | URL |
+|---|---|
+| 🖥️ **Frontend** | [https://raj0825.github.io/Expense-Tracker-Application-Frontend/login.html](https://raj0825.github.io/Expense-Tracker-Application-Frontend/login.html) |
+| ⚙️ **Backend API** | [https://spendsmart-api-ooqh.onrender.com/api/health](https://spendsmart-api-ooqh.onrender.com/api/health) |
+| 🗄️ **Database** | Aiven Cloud MySQL (Bangalore) |
+ 
+> ⚠️ Note: Backend is on Render free tier — first request may take 30-60 seconds to wake up.
 
 ## ✨ Features
 

@@ -9,6 +9,15 @@
 
 ---
 
+🌐 Live Demo
+
+URL🖥️ Frontendhttps://raj0825.github.io/Expense-Tracker-Application-Frontend/login.html
+⚙️ Backend APIhttps://spendsmart-api-ooqh.onrender.com/api/health
+🗄️ DatabaseAiven Cloud MySQL (Bangalore)
+
+⚠️ Note: Backend is on Render free tier — first request may take 30-60 seconds to wake up.
+
+---
 
 ## ✨ Features
 
@@ -313,4 +322,4 @@ Walchand Institute of Technology, Solapur
 
 ---
 
-> Built with ❤️ using Java + Spring Boot + MySQL + Vanilla JS
+>Built with ❤️ using Java + Spring Boot + MySQL + Vanilla JS | Deployed on GitHub Pages + Render + Aiven

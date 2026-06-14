@@ -86,6 +86,7 @@ function renderSidebar(active){
       {id:'reports',icon:'📈',label:'Monthly Reports',href:'/reports.html'},
       {id:'suggestions',icon:'💡',label:'Suggestions',href:'/suggestions.html'},
       {id:'settings',icon:'⚙️',label:'Settings',href:'/profile.html'},
+      {id:'tools',icon:'🧮',label:'Financial Tools',href:'/financial-tools.html'},
   ];
   return `
   <aside class="sidebar">

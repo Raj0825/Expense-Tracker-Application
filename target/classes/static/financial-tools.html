@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>SpendSmart — Financial Tools</title>
+    <link rel="stylesheet" href="shared.css">
+
+    <style>
+        .tools-grid{
+            display:grid;
+            grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+            gap:20px;
+        }
+
+        .tool-card{
+            background:var(--card);
+            border:1px solid var(--border);
+            border-radius:18px;
+            padding:24px;
+            cursor:pointer;
+            transition:.2s;
+        }
+
+        .tool-card:hover{
+            transform:translateY(-4px);
+            border-color:var(--accent);
+        }
+
+        .tool-icon{
+            font-size:40px;
+            margin-bottom:14px;
+        }
+
+        .tool-title{
+            font-family:'Syne',sans-serif;
+            font-size:18px;
+            font-weight:700;
+            margin-bottom:8px;
+        }
+
+        .tool-desc{
+            color:var(--muted);
+            font-size:13px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="sidebar-root"></div>
+
+<div class="topbar">
+    <div class="topbar-left">
+        <div class="page-title">Financial Tools</div>
+        <div class="page-sub">
+            Smart calculators for better financial planning
+        </div>
+    </div>
+</div>
+
+<main class="main">
+
+    <div class="tools-grid">
+
+        <div class="tool-card" onclick="location.href='emi-calculator.html'">
+            <div class="tool-icon">🏦</div>
+            <div class="tool-title">EMI Calculator</div>
+            <div class="tool-desc">Calculate loan EMI and interest</div>
+        </div>
+
+        <div class="tool-card" onclick="location.href='budget-calculator.html'">
+            <div class="tool-icon">💰</div>
+            <div class="tool-title">Budget Calculator</div>
+            <div class="tool-desc">Plan monthly spending</div>
+        </div>
+
+        <div class="tool-card" onclick="location.href='savings-calculator.html'">
+            <div class="tool-icon">🎯</div>
+            <div class="tool-title">Savings Goal</div>
+            <div class="tool-desc">Track savings targets</div>
+        </div>
+
+        <div class="tool-card" onclick="location.href='sip-calculator.html'">
+            <div class="tool-icon">📈</div>
+            <div class="tool-title">SIP Calculator</div>
+            <div class="tool-desc">Estimate investment growth</div>
+        </div>
+
+        <div class="tool-card" onclick="location.href='gst-calculator.html'">
+            <div class="tool-icon">🧾</div>
+            <div class="tool-title">GST Calculator</div>
+            <div class="tool-desc">Calculate GST instantly</div>
+        </div>
+
+        <div class="tool-card" onclick="location.href='currency-converter.html'">
+            <div class="tool-icon">💱</div>
+            <div class="tool-title">Currency Converter</div>
+            <div class="tool-desc">Convert currencies</div>
+        </div>
+
+        <div class="tool-card" onclick="location.href='unit-converter.html'">
+            <div class="tool-icon">📏</div>
+            <div class="tool-title">Unit Converter</div>
+            <div class="tool-desc">Length, weight and temperature</div>
+        </div>
+
+    </div>
+
+</main>
+
+<script src="shared.js"></script>
+
+<script>
+    if(!requireAuth()) throw '';
+    document.getElementById('sidebar-root')
+    .innerHTML = renderSidebar('tools');
+</script>
+
+</body>
+</html>

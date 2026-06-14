@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SpendSmart — Profile</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+.profile-avatar{width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;font-family:'Syne',sans-serif;margin-bottom:16px}
+.section-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.save-btn{padding:12px 28px;background:linear-gradient(135deg,var(--accent),#5b3ef0);border:none;border-radius:10px;color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:.2s}
+.save-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(124,92,252,.4)}
+.save-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+</style>
+</head>
+<body>
+<div id="sidebar-root"></div>
+<main class="main">
+  <div class="page-header"><div class="page-title">Profile Settings</div><div class="page-sub">Manage your account</div></div>
+  <div class="grid-2">
+    <!-- PROFILE INFO -->
+    <div class="card">
+      <div class="section-title">Account Info</div>
+      <div id="profileAvatar" class="profile-avatar">U</div>
+      <div class="field"><label>Full Name</label><input type="text" id="pName" placeholder="Your name"></div>
+      <div class="field"><label>Email Address</label><input type="email" id="pEmail" placeholder="Email" disabled style="opacity:.5;cursor:not-allowed"></div>
+      <div class="field"><label>Currency</label>
+        <select id="pCurrency">
+          <option value="INR">₹ Indian Rupee (INR)</option>
+          <option value="USD">$ US Dollar (USD)</option>
+          <option value="EUR">€ Euro (EUR)</option>
+          <option value="GBP">£ British Pound (GBP)</option>
+          <option value="JPY">¥ Japanese Yen (JPY)</option>
+        </select>
+      </div>
+      <div class="field"><label>Monthly Budget</label><input type="number" id="pBudget" placeholder="e.g. 30000" min="0"></div>
+      <button class="save-btn" id="saveProfileBtn" onclick="saveProfile()">Save Changes</button>
+    </div>
+    <!-- CHANGE PASSWORD -->
+    <div>
+      <div class="card" style="margin-bottom:20px">
+        <div class="section-title">Change Password</div>
+        <div class="field"><label>Current Password</label><input type="password" id="pCurPass" placeholder="Current password"></div>
+        <div class="field"><label>New Password</label><input type="password" id="pNewPass" placeholder="New password (min 6 chars)"></div>
+        <div class="field"><label>Confirm New Password</label><input type="password" id="pConfPass" placeholder="Confirm new password"></div>
+        <button class="save-btn" id="savePassBtn" onclick="savePassword()">Update Password</button>
+      </div>
+      <div class="card">
+        <div class="section-title">Account Stats</div>
+        <div id="accountStats" style="color:var(--muted);font-size:12px">Loading...</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="shared.js"></script>
+<script>
+if(!requireAuth())throw'';
+document.getElementById('sidebar-root').innerHTML=renderSidebar('profile');
+
+async function loadProfile(){
+  const d=await apiFetch('/auth/me');
+  if(!d?.success)return;
+  const u=d.user;
+  localStorage.setItem('user',JSON.stringify(u));
+  document.getElementById('pName').value=u.name||'';
+  document.getElementById('pEmail').value=u.email||'';
+  document.getElementById('pCurrency').value=u.currency||'INR';
+  document.getElementById('pBudget').value=u.monthlyBudget||'';
+  const init=u.name?.charAt(0).toUpperCase()||'U';
+  document.getElementById('profileAvatar').textContent=init;
+
+  const joined=new Date(u.createdAt).toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
+  document.getElementById('accountStats').innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;justify-content:space-between;padding:10px;background:var(--input);border-radius:8px">
+        <span>Member since</span><span style="color:var(--text);font-weight:600">${joined}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:10px;background:var(--input);border-radius:8px">
+        <span>Currency</span><span style="color:var(--accent);font-weight:600">${u.currency}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:10px;background:var(--input);border-radius:8px">
+        <span>Monthly Budget</span><span style="color:var(--accent2);font-weight:600">${fmtMoney(u.monthlyBudget||0)}</span>
+      </div>
+    </div>`;
+}
+
+async function saveProfile(){
+  const name=document.getElementById('pName').value.trim();
+  const currency=document.getElementById('pCurrency').value;
+  const monthlyBudget=parseFloat(document.getElementById('pBudget').value)||0;
+  if(!name){showToast('Name is required','error');return;}
+  spin('saveProfileBtn',true);
+  const d=await apiFetch('/auth/update',{method:'PUT',body:JSON.stringify({name,currency,monthlyBudget})});
+  spin('saveProfileBtn',false);
+  if(d?.success){localStorage.setItem('user',JSON.stringify(d.user));showToast('Profile updated!');loadProfile();}
+  else showToast(d?.message||'Failed to update','error');
+}
+
+async function savePassword(){
+  const currentPassword=document.getElementById('pCurPass').value;
+  const newPassword=document.getElementById('pNewPass').value;
+  const confirmPassword=document.getElementById('pConfPass').value;
+  if(!currentPassword||!newPassword){showToast('Fill in all password fields','error');return;}
+  if(newPassword.length<6){showToast('New password min 6 chars','error');return;}
+  if(newPassword!==confirmPassword){showToast('Passwords do not match','error');return;}
+  spin('savePassBtn',true);
+  const d=await apiFetch('/auth/change-password',{method:'PUT',body:JSON.stringify({currentPassword,newPassword})});
+  spin('savePassBtn',false);
+  if(d?.success){showToast('Password updated!');document.getElementById('pCurPass').value='';document.getElementById('pNewPass').value='';document.getElementById('pConfPass').value='';}
+  else showToast(d?.message||'Failed to update password','error');
+}
+
+loadProfile();
+</script>
+</body>
+</html>

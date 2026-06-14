@@ -2,7 +2,11 @@ package com.expensetracker.service;
 
 import com.expensetracker.dto.EmiRequest;
 import com.expensetracker.dto.EmiResponse;
+import com.expensetracker.dto.EmiScheduleRow;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class EmiCalculatorService {
@@ -26,10 +30,45 @@ public class EmiCalculatorService {
 
         double totalInterest = totalPayment - principal;
 
+        List<EmiScheduleRow> schedule = new ArrayList<>();
+
+        double balance = principal;
+
+        for (int month = 1; month <= months; month++) {
+
+            double interestPart =
+                    balance * monthlyRate;
+
+            double principalPart =
+                    emi - interestPart;
+
+            balance =
+                    balance - principalPart;
+
+            if (balance < 0) {
+                balance = 0;
+            }
+
+            schedule.add(
+                    new EmiScheduleRow(
+                            month,
+                            round(emi),
+                            round(principalPart),
+                            round(interestPart),
+                            round(balance)
+                    )
+            );
+        }
+
         return new EmiResponse(
-                Math.round(emi * 100.0) / 100.0,
-                Math.round(totalInterest * 100.0) / 100.0,
-                Math.round(totalPayment * 100.0) / 100.0
+                round(emi),
+                round(totalInterest),
+                round(totalPayment),
+                schedule
         );
+    }
+
+    private double round(double value) {
+        return Math.round(value * 100.0) / 100.0;
     }
 }

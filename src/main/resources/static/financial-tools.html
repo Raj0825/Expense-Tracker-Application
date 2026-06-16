@@ -151,6 +151,61 @@
         }
 
         .hidden { display: none; }
+
+        .amort-wrap {
+          margin-top: 1.5rem;
+          border: 1px solid #1e2235;
+          border-radius: 10px;
+          overflow: hidden;
+        }
+        .amort-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 12px 16px;
+          background: #1a1e30;
+          border-bottom: 1px solid #1e2235;
+        }
+        .amort-header span { font-size: 13px; font-weight: 600; color: #fff; }
+        .amort-toggle {
+          font-size: 12px; color: #4f6ef7; background: none;
+          border: 1px solid #4f6ef7; border-radius: 6px;
+          padding: 3px 10px; cursor: pointer; font-weight: 500;
+        }
+        .amort-table-wrap {
+          max-height: 360px; overflow-y: auto;
+          scrollbar-width: thin; scrollbar-color: #2a2e45 transparent;
+        }
+        .amort-table-wrap::-webkit-scrollbar { width: 5px; }
+        .amort-table-wrap::-webkit-scrollbar-thumb { background: #2a2e45; border-radius: 4px; }
+        .amort-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .amort-table thead tr { background: #0d0f1a; position: sticky; top: 0; z-index: 1; }
+        .amort-table th {
+          padding: 10px 12px; text-align: right;
+          color: #555; font-weight: 600; font-size: 11px; white-space: nowrap;
+        }
+        .amort-table th:first-child { text-align: left; }
+        .amort-table td {
+          padding: 9px 12px; text-align: right;
+          border-bottom: 1px solid #12141f; color: #ccc; white-space: nowrap;
+        }
+        .amort-table td:first-child { text-align: left; color: #666; font-weight: 500; }
+        .amort-table tbody tr:hover { background: #1a1e30; }
+        .amort-table tbody tr:last-child td { border-bottom: none; }
+        .p-cell { color: #4f6ef7; font-weight: 500; }
+        .i-cell { color: #f59e0b; }
+        .b-cell { color: #4caf82; }
+        .e-cell { color: #fff; font-weight: 600; }
+        .amort-footer {
+          display: flex; border-top: 1px solid #1e2235;
+        }
+        .amort-foot-item {
+          flex: 1; padding: 10px 12px; text-align: center;
+          border-right: 1px solid #1e2235;
+        }
+        .amort-foot-item:last-child { border-right: none; }
+        .amort-foot-label { font-size: 10px; color: #555; margin-bottom: 3px; }
+        .amort-foot-value { font-size: 13px; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -212,6 +267,29 @@
             </div>
             <button class="calc-btn" onclick="calcEMI()">Calculate EMI</button>
             <div class="results" id="emi-results"></div>
+
+            <div class="amort-wrap hidden" id="amort-wrap">
+                <div class="amort-header">
+                    <span>📅 Month-by-Month Breakdown</span>
+                    <button class="amort-toggle" id="amort-toggle-btn" onclick="toggleAmort()">Hide Table</button>
+                </div>
+                <div class="amort-table-wrap" id="amort-table-wrap">
+                    <table class="amort-table">
+                        <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>EMI (₹)</th>
+                            <th>Principal (₹)</th>
+                            <th>Interest (₹)</th>
+                            <th>Total Paid (₹)</th>
+                            <th>Balance Left (₹)</th>
+                        </tr>
+                        </thead>
+                        <tbody id="amort-body"></tbody>
+                    </table>
+                </div>
+                <div class="amort-footer" id="amort-footer"></div>
+            </div>
         </div>
 
         <!-- Budget Calculator -->
@@ -360,20 +438,91 @@
     }
 
     // --- EMI ---
+    let amortVisible = true;
+
+    function toggleAmort() {
+      const wrap = document.getElementById('amort-table-wrap');
+      const footer = document.getElementById('amort-footer');
+      const btn = document.getElementById('amort-toggle-btn');
+      amortVisible = !amortVisible;
+      wrap.style.display = amortVisible ? '' : 'none';
+      footer.style.display = amortVisible ? '' : 'none';
+      btn.textContent = amortVisible ? 'Hide Table' : 'Show Table';
+    }
+
     function calcEMI() {
       const P = +document.getElementById('emi-principal').value;
-      const r = (+document.getElementById('emi-rate').value) / 12 / 100;
+      const annualRate = +document.getElementById('emi-rate').value;
       const n = +document.getElementById('emi-tenure').value;
-      if (!P || !r || !n) return;
-      const emi      = P * r * Math.pow(1+r, n) / (Math.pow(1+r, n) - 1);
-      const total    = emi * n;
-      const interest = total - P;
+      if (!P || !annualRate || !n) return;
+
+      const r   = annualRate / 12 / 100;
+      const emi = P * r * Math.pow(1+r, n) / (Math.pow(1+r, n) - 1);
+      const totalPayment = emi * n;
+      const totalInterest = totalPayment - P;
+
       renderResults('emi-results', [
-        { label: 'Monthly EMI',    value: '₹' + fmt(emi),                       cls: 'blue' },
-        { label: 'Total Interest', value: '₹' + fmtInt(interest) },
-        { label: 'Total Payment',  value: '₹' + fmtInt(total) },
-        { label: 'Interest %',     value: fmt(interest / P * 100) + '%' }
+        { label: 'Monthly EMI',    value: '₹' + fmt(emi),                    cls: 'blue' },
+        { label: 'Total Interest', value: '₹' + fmtInt(totalInterest) },
+        { label: 'Total Payment',  value: '₹' + fmtInt(totalPayment) },
+        { label: 'Interest %',     value: fmt(totalInterest / P * 100) + '%' }
       ]);
+
+      // Build amortization schedule
+      const startDate = new Date();
+      let balance = P;
+      let totalPaid = 0;
+      let rows = '';
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+      for (let i = 1; i <= n; i++) {
+        const interestAmt  = balance * r;
+        const principalAmt = emi - interestAmt;
+        balance = Math.max(0, balance - principalAmt);
+        totalPaid += emi;
+
+        const d = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
+        const monthLabel = months[d.getMonth()] + ' ' + d.getFullYear();
+
+        // Highlight last row
+        const isLast = i === n;
+        rows += `<tr${isLast ? ' style="background:#1a2a1a"' : ''}>
+          <td>${i}. ${monthLabel}</td>
+          <td class="e-cell">₹${fmt(emi)}</td>
+          <td class="p-cell">₹${fmt(principalAmt)}</td>
+          <td class="i-cell">₹${fmt(interestAmt)}</td>
+          <td>₹${fmt(totalPaid)}</td>
+          <td class="b-cell">₹${fmt(balance)}</td>
+        </tr>`;
+      }
+
+      document.getElementById('amort-body').innerHTML = rows;
+
+      // Footer summary
+      document.getElementById('amort-footer').innerHTML = `
+        <div class="amort-foot-item">
+          <div class="amort-foot-label">Total Months</div>
+          <div class="amort-foot-value" style="color:#fff">${n}</div>
+        </div>
+        <div class="amort-foot-item">
+          <div class="amort-foot-label">Principal Paid</div>
+          <div class="amort-foot-value" style="color:#4f6ef7">₹${fmtInt(P)}</div>
+        </div>
+        <div class="amort-foot-item">
+          <div class="amort-foot-label">Interest Paid</div>
+          <div class="amort-foot-value" style="color:#f59e0b">₹${fmtInt(totalInterest)}</div>
+        </div>
+        <div class="amort-foot-item">
+          <div class="amort-foot-label">Total Paid</div>
+          <div class="amort-foot-value" style="color:#4caf82">₹${fmtInt(totalPayment)}</div>
+        </div>`;
+
+      // Show the table
+      amortVisible = true;
+      document.getElementById('amort-wrap').classList.remove('hidden');
+      document.getElementById('amort-table-wrap').style.display = '';
+      document.getElementById('amort-footer').style.display = '';
+      document.getElementById('amort-toggle-btn').textContent = 'Hide Table';
     }
 
     // --- Budget ---

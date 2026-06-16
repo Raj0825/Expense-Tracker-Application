@@ -1,121 +1,685 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title>SpendSmart — Financial Tools</title>
-    <link rel="stylesheet" href="shared.css">
-
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Financial Tools – SpendSmart</title>
     <style>
-        .tools-grid{
-            display:grid;
-            grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-            gap:20px;
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+          font-family: 'Segoe UI', sans-serif;
+          background: #0d0f1a;
+          color: #e0e0e0;
+          min-height: 100vh;
         }
 
-        .tool-card{
-            background:var(--card);
-            border:1px solid var(--border);
-            border-radius:18px;
-            padding:24px;
-            cursor:pointer;
-            transition:.2s;
+        .page-header {
+          padding: 2rem 2rem 1rem;
+          border-bottom: 1px solid #1e2235;
+        }
+        .page-header h1 { font-size: 22px; font-weight: 700; color: #fff; }
+        .page-header p  { font-size: 14px; color: #888; margin-top: 4px; }
+
+        .container { padding: 2rem; }
+
+        .tools-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+          gap: 14px;
+          margin-bottom: 2rem;
         }
 
-        .tool-card:hover{
-            transform:translateY(-4px);
-            border-color:var(--accent);
+        .tool-card {
+          background: #161928;
+          border: 1px solid #1e2235;
+          border-radius: 14px;
+          padding: 1.25rem 1rem;
+          cursor: pointer;
+          transition: border-color 0.2s, background 0.2s;
+          user-select: none;
+        }
+        .tool-card:hover { border-color: #4f6ef7; background: #1a1e30; }
+        .tool-card.active { border-color: #4f6ef7; background: #1a1e30; }
+
+        .tool-icon { font-size: 26px; margin-bottom: 10px; }
+        .tool-name  { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+        .tool-desc  { font-size: 12px; color: #666; }
+
+        .calc-panel {
+          background: #161928;
+          border: 1px solid #1e2235;
+          border-radius: 14px;
+          padding: 1.75rem;
         }
 
-        .tool-icon{
-            font-size:40px;
-            margin-bottom:14px;
+        .calc-title {
+          font-size: 17px;
+          font-weight: 600;
+          color: #fff;
+          margin-bottom: 1.5rem;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .calc-title span { font-size: 22px; }
+
+        .fields {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 14px;
+          margin-bottom: 1.25rem;
+        }
+        @media (max-width: 500px) { .fields { grid-template-columns: 1fr; } }
+
+        .field label {
+          display: block;
+          font-size: 12px;
+          color: #888;
+          margin-bottom: 5px;
+        }
+        .field input,
+        .field select {
+          width: 100%;
+          padding: 9px 12px;
+          font-size: 14px;
+          background: #0d0f1a;
+          border: 1px solid #2a2e45;
+          border-radius: 8px;
+          color: #e0e0e0;
+          outline: none;
+          transition: border-color 0.15s;
+        }
+        .field input:focus,
+        .field select:focus { border-color: #4f6ef7; }
+        .field select option { background: #161928; }
+
+        .calc-btn {
+          background: #4f6ef7;
+          color: #fff;
+          border: none;
+          border-radius: 8px;
+          padding: 10px 22px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          margin-bottom: 1.25rem;
+          transition: background 0.15s;
+        }
+        .calc-btn:hover { background: #3a57e8; }
+
+        .results {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+          gap: 12px;
         }
 
-        .tool-title{
-            font-family:'Syne',sans-serif;
-            font-size:18px;
-            font-weight:700;
-            margin-bottom:8px;
+        .result-card {
+          background: #0d0f1a;
+          border: 1px solid #1e2235;
+          border-radius: 10px;
+          padding: 14px;
+        }
+        .result-label { font-size: 12px; color: #666; margin-bottom: 5px; }
+        .result-value { font-size: 20px; font-weight: 600; color: #fff; }
+        .result-value.green { color: #4caf82; }
+        .result-value.blue  { color: #4f6ef7; }
+
+        .unit-tabs {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          margin-bottom: 1.25rem;
+        }
+        .unit-tab {
+          font-size: 13px;
+          padding: 5px 14px;
+          border-radius: 20px;
+          border: 1px solid #2a2e45;
+          background: transparent;
+          color: #888;
+          cursor: pointer;
+          transition: all 0.15s;
+        }
+        .unit-tab.active,
+        .unit-tab:hover { background: #4f6ef7; color: #fff; border-color: #4f6ef7; }
+
+        .note {
+          font-size: 11px;
+          color: #555;
+          margin-top: 10px;
         }
 
-        .tool-desc{
-            color:var(--muted);
-            font-size:13px;
+        .hidden { display: none; }
+
+        .amort-wrap {
+          margin-top: 1.5rem;
+          border: 1px solid #1e2235;
+          border-radius: 10px;
+          overflow: hidden;
         }
+        .amort-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 12px 16px;
+          background: #1a1e30;
+          border-bottom: 1px solid #1e2235;
+        }
+        .amort-header span { font-size: 13px; font-weight: 600; color: #fff; }
+        .amort-toggle {
+          font-size: 12px; color: #4f6ef7; background: none;
+          border: 1px solid #4f6ef7; border-radius: 6px;
+          padding: 3px 10px; cursor: pointer; font-weight: 500;
+        }
+        .amort-table-wrap {
+          max-height: 360px; overflow-y: auto;
+          scrollbar-width: thin; scrollbar-color: #2a2e45 transparent;
+        }
+        .amort-table-wrap::-webkit-scrollbar { width: 5px; }
+        .amort-table-wrap::-webkit-scrollbar-thumb { background: #2a2e45; border-radius: 4px; }
+        .amort-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        .amort-table thead tr { background: #0d0f1a; position: sticky; top: 0; z-index: 1; }
+        .amort-table th {
+          padding: 10px 12px; text-align: right;
+          color: #555; font-weight: 600; font-size: 11px; white-space: nowrap;
+        }
+        .amort-table th:first-child { text-align: left; }
+        .amort-table td {
+          padding: 9px 12px; text-align: right;
+          border-bottom: 1px solid #12141f; color: #ccc; white-space: nowrap;
+        }
+        .amort-table td:first-child { text-align: left; color: #666; font-weight: 500; }
+        .amort-table tbody tr:hover { background: #1a1e30; }
+        .amort-table tbody tr:last-child td { border-bottom: none; }
+        .p-cell { color: #4f6ef7; font-weight: 500; }
+        .i-cell { color: #f59e0b; }
+        .b-cell { color: #4caf82; }
+        .e-cell { color: #fff; font-weight: 600; }
+        .amort-footer {
+          display: flex; border-top: 1px solid #1e2235;
+        }
+        .amort-foot-item {
+          flex: 1; padding: 10px 12px; text-align: center;
+          border-right: 1px solid #1e2235;
+        }
+        .amort-foot-item:last-child { border-right: none; }
+        .amort-foot-label { font-size: 10px; color: #555; margin-bottom: 3px; }
+        .amort-foot-value { font-size: 13px; font-weight: 600; }
     </style>
 </head>
-
 <body>
 
-<div id="sidebar-root"></div>
+<div class="page-header">
+    <a href="/dashboard.html" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#888;text-decoration:none;margin-bottom:10px;transition:color 0.15s;" onmouseover="this.style.color='#4f6ef7'" onmouseout="this.style.color='#888'">
+        ← Back to Dashboard
+    </a>
+    <h1>💰 Financial Tools</h1>
+    <p>Smart calculators for better financial planning</p>
+</div>
 
-<div class="topbar">
-    <div class="topbar-left">
-        <div class="page-title">Financial Tools</div>
-        <div class="page-sub">
-            Smart calculators for better financial planning
+<div class="container">
+
+    <div class="tools-grid" id="toolsGrid">
+        <div class="tool-card active" onclick="showCalc('emi', this)">
+            <div class="tool-icon">🏦</div>
+            <div class="tool-name">EMI Calculator</div>
+            <div class="tool-desc">Calculate loan EMI and interest</div>
         </div>
+        <div class="tool-card" onclick="showCalc('budget', this)">
+            <div class="tool-icon">💵</div>
+            <div class="tool-name">Budget Calculator</div>
+            <div class="tool-desc">Plan monthly spending</div>
+        </div>
+        <div class="tool-card" onclick="showCalc('savings', this)">
+            <div class="tool-icon">🎯</div>
+            <div class="tool-name">Savings Goal</div>
+            <div class="tool-desc">Track savings targets</div>
+        </div>
+        <div class="tool-card" onclick="showCalc('sip', this)">
+            <div class="tool-icon">📈</div>
+            <div class="tool-name">SIP Calculator</div>
+            <div class="tool-desc">Estimate investment growth</div>
+        </div>
+        <div class="tool-card" onclick="showCalc('gst', this)">
+            <div class="tool-icon">🧾</div>
+            <div class="tool-name">GST Calculator</div>
+            <div class="tool-desc">Calculate GST instantly</div>
+        </div>
+        <div class="tool-card" onclick="showCalc('currency', this)">
+            <div class="tool-icon">💱</div>
+            <div class="tool-name">Currency Converter</div>
+            <div class="tool-desc">Convert currencies</div>
+        </div>
+        <div class="tool-card" onclick="showCalc('unit', this)">
+            <div class="tool-icon">📏</div>
+            <div class="tool-name">Unit Converter</div>
+            <div class="tool-desc">Length, weight and temperature</div>
+        </div>
+    </div>
+
+    <div class="calc-panel">
+
+        <!-- EMI Calculator -->
+        <div id="calc-emi">
+            <div class="calc-title"><span>🏦</span> EMI Calculator</div>
+            <div class="fields">
+                <div class="field"><label>Loan Amount (₹)</label><input type="number" id="emi-principal" value="500000" min="1"></div>
+                <div class="field"><label>Annual Interest Rate (%)</label><input type="number" id="emi-rate" value="8.5" step="0.1" min="0.1"></div>
+                <div class="field"><label>Loan Tenure (Months)</label><input type="number" id="emi-tenure" value="60" min="1"></div>
+            </div>
+            <button class="calc-btn" onclick="calcEMI()">Calculate EMI</button>
+            <div class="results" id="emi-results"></div>
+
+            <div class="amort-wrap hidden" id="amort-wrap">
+                <div class="amort-header">
+                    <span>📅 Month-by-Month Breakdown</span>
+                    <button class="amort-toggle" id="amort-toggle-btn" onclick="toggleAmort()">Hide Table</button>
+                </div>
+                <div class="amort-table-wrap" id="amort-table-wrap">
+                    <table class="amort-table">
+                        <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>EMI (₹)</th>
+                            <th>Principal (₹)</th>
+                            <th>Interest (₹)</th>
+                            <th>Total Paid (₹)</th>
+                            <th>Balance Left (₹)</th>
+                        </tr>
+                        </thead>
+                        <tbody id="amort-body"></tbody>
+                    </table>
+                </div>
+                <div class="amort-footer" id="amort-footer"></div>
+            </div>
+        </div>
+
+        <!-- Budget Calculator -->
+        <div id="calc-budget" class="hidden">
+            <div class="calc-title"><span>💵</span> Budget Calculator</div>
+            <div class="fields">
+                <div class="field"><label>Monthly Income (₹)</label><input type="number" id="budget-income" value="50000" min="1"></div>
+                <div class="field"><label>Rent / Housing (₹)</label><input type="number" id="budget-rent" value="10000" min="0"></div>
+                <div class="field"><label>Food & Groceries (₹)</label><input type="number" id="budget-food" value="8000" min="0"></div>
+                <div class="field"><label>Transport (₹)</label><input type="number" id="budget-transport" value="3000" min="0"></div>
+                <div class="field"><label>Utilities & Bills (₹)</label><input type="number" id="budget-utilities" value="2000" min="0"></div>
+                <div class="field"><label>Entertainment (₹)</label><input type="number" id="budget-entertainment" value="3000" min="0"></div>
+                <div class="field"><label>Other Expenses (₹)</label><input type="number" id="budget-other" value="2000" min="0"></div>
+            </div>
+            <button class="calc-btn" onclick="calcBudget()">Calculate Budget</button>
+            <div class="results" id="budget-results"></div>
+        </div>
+
+        <!-- Savings Goal -->
+        <div id="calc-savings" class="hidden">
+            <div class="calc-title"><span>🎯</span> Savings Goal</div>
+            <div class="fields">
+                <div class="field"><label>Target Amount (₹)</label><input type="number" id="sav-target" value="200000" min="1"></div>
+                <div class="field"><label>Current Savings (₹)</label><input type="number" id="sav-current" value="50000" min="0"></div>
+                <div class="field"><label>Monthly Saving (₹)</label><input type="number" id="sav-monthly" value="10000" min="1"></div>
+                <div class="field"><label>Annual Interest Rate (%)</label><input type="number" id="sav-rate" value="6" step="0.1" min="0"></div>
+            </div>
+            <button class="calc-btn" onclick="calcSavings()">Calculate</button>
+            <div class="results" id="sav-results"></div>
+        </div>
+
+        <!-- SIP Calculator -->
+        <div id="calc-sip" class="hidden">
+            <div class="calc-title"><span>📈</span> SIP Calculator</div>
+            <div class="fields">
+                <div class="field"><label>Monthly SIP Amount (₹)</label><input type="number" id="sip-amount" value="5000" min="1"></div>
+                <div class="field"><label>Expected Annual Return (%)</label><input type="number" id="sip-rate" value="12" step="0.1" min="0.1"></div>
+                <div class="field"><label>Investment Period (Years)</label><input type="number" id="sip-years" value="10" min="1"></div>
+            </div>
+            <button class="calc-btn" onclick="calcSIP()">Calculate Returns</button>
+            <div class="results" id="sip-results"></div>
+        </div>
+
+        <!-- GST Calculator -->
+        <div id="calc-gst" class="hidden">
+            <div class="calc-title"><span>🧾</span> GST Calculator</div>
+            <div class="fields">
+                <div class="field"><label>Amount (₹)</label><input type="number" id="gst-amount" value="1000" min="1"></div>
+                <div class="field"><label>GST Rate (%)</label>
+                    <select id="gst-rate">
+                        <option value="0">0% — Exempt</option>
+                        <option value="5">5%</option>
+                        <option value="12">12%</option>
+                        <option value="18" selected>18%</option>
+                        <option value="28">28%</option>
+                    </select>
+                </div>
+                <div class="field"><label>Type</label>
+                    <select id="gst-type">
+                        <option value="exclusive">Add GST (Exclusive)</option>
+                        <option value="inclusive">Remove GST (Inclusive)</option>
+                    </select>
+                </div>
+            </div>
+            <button class="calc-btn" onclick="calcGST()">Calculate GST</button>
+            <div class="results" id="gst-results"></div>
+        </div>
+
+        <!-- Currency Converter -->
+        <div id="calc-currency" class="hidden">
+            <div class="calc-title"><span>💱</span> Currency Converter</div>
+            <div class="fields">
+                <div class="field"><label>Amount</label><input type="number" id="curr-amount" value="1000" min="0.01" step="0.01"></div>
+                <div class="field"><label>From Currency</label>
+                    <select id="curr-from">
+                        <option value="INR" selected>INR — Indian Rupee</option>
+                        <option value="USD">USD — US Dollar</option>
+                        <option value="EUR">EUR — Euro</option>
+                        <option value="GBP">GBP — British Pound</option>
+                        <option value="AED">AED — UAE Dirham</option>
+                        <option value="JPY">JPY — Japanese Yen</option>
+                        <option value="CAD">CAD — Canadian Dollar</option>
+                        <option value="AUD">AUD — Australian Dollar</option>
+                        <option value="SGD">SGD — Singapore Dollar</option>
+                    </select>
+                </div>
+                <div class="field"><label>To Currency</label>
+                    <select id="curr-to">
+                        <option value="INR">INR — Indian Rupee</option>
+                        <option value="USD" selected>USD — US Dollar</option>
+                        <option value="EUR">EUR — Euro</option>
+                        <option value="GBP">GBP — British Pound</option>
+                        <option value="AED">AED — UAE Dirham</option>
+                        <option value="JPY">JPY — Japanese Yen</option>
+                        <option value="CAD">CAD — Canadian Dollar</option>
+                        <option value="AUD">AUD — Australian Dollar</option>
+                        <option value="SGD">SGD — Singapore Dollar</option>
+                    </select>
+                </div>
+            </div>
+            <button class="calc-btn" onclick="calcCurrency()">Convert</button>
+            <div class="results" id="curr-results"></div>
+            <p class="note">* Approximate rates. For live rates, call an exchange rate API from your Spring Boot backend.</p>
+        </div>
+
+        <!-- Unit Converter -->
+        <div id="calc-unit" class="hidden">
+            <div class="calc-title"><span>📏</span> Unit Converter</div>
+            <div class="unit-tabs" id="unit-tabs">
+                <button class="unit-tab active" onclick="setUnitType('length', this)">Length</button>
+                <button class="unit-tab" onclick="setUnitType('weight', this)">Weight</button>
+                <button class="unit-tab" onclick="setUnitType('temperature', this)">Temperature</button>
+                <button class="unit-tab" onclick="setUnitType('area', this)">Area</button>
+                <button class="unit-tab" onclick="setUnitType('volume', this)">Volume</button>
+            </div>
+            <div class="fields">
+                <div class="field"><label>Value</label><input type="number" id="unit-value" value="1" step="any"></div>
+                <div class="field"><label>From</label><select id="unit-from"></select></div>
+                <div class="field"><label>To</label><select id="unit-to"></select></div>
+            </div>
+            <button class="calc-btn" onclick="calcUnit()">Convert</button>
+            <div class="results" id="unit-results"></div>
+        </div>
+
     </div>
 </div>
 
-<main class="main">
-
-    <div class="tools-grid">
-
-        <div class="tool-card" onclick="location.href='emi-calculator.html'">
-            <div class="tool-icon">🏦</div>
-            <div class="tool-title">EMI Calculator</div>
-            <div class="tool-desc">Calculate loan EMI and interest</div>
-        </div>
-
-        <div class="tool-card" onclick="location.href='budget-calculator.html'">
-            <div class="tool-icon">💰</div>
-            <div class="tool-title">Budget Calculator</div>
-            <div class="tool-desc">Plan monthly spending</div>
-        </div>
-
-        <div class="tool-card" onclick="location.href='savings-calculator.html'">
-            <div class="tool-icon">🎯</div>
-            <div class="tool-title">Savings Goal</div>
-            <div class="tool-desc">Track savings targets</div>
-        </div>
-
-        <div class="tool-card" onclick="location.href='sip-calculator.html'">
-            <div class="tool-icon">📈</div>
-            <div class="tool-title">SIP Calculator</div>
-            <div class="tool-desc">Estimate investment growth</div>
-        </div>
-
-        <div class="tool-card" onclick="location.href='gst-calculator.html'">
-            <div class="tool-icon">🧾</div>
-            <div class="tool-title">GST Calculator</div>
-            <div class="tool-desc">Calculate GST instantly</div>
-        </div>
-
-        <div class="tool-card" onclick="location.href='currency-converter.html'">
-            <div class="tool-icon">💱</div>
-            <div class="tool-title">Currency Converter</div>
-            <div class="tool-desc">Convert currencies</div>
-        </div>
-
-        <div class="tool-card" onclick="location.href='unit-converter.html'">
-            <div class="tool-icon">📏</div>
-            <div class="tool-title">Unit Converter</div>
-            <div class="tool-desc">Length, weight and temperature</div>
-        </div>
-
-    </div>
-
-</main>
-
-<script src="shared.js"></script>
-
 <script>
-    if(!requireAuth()) throw '';
-    document.getElementById('sidebar-root')
-    .innerHTML = renderSidebar('tools');
-</script>
+    function fmt(n)    { return Number(n.toFixed(2)).toLocaleString('en-IN'); }
+    function fmtInt(n) { return Math.round(n).toLocaleString('en-IN'); }
 
+    function showCalc(id, card) {
+      document.querySelectorAll('.tool-card').forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+      document.querySelectorAll('.calc-panel > div').forEach(d => d.classList.add('hidden'));
+      document.getElementById('calc-' + id).classList.remove('hidden');
+    }
+
+    function renderResults(containerId, items) {
+      document.getElementById(containerId).innerHTML = items.map(i =>
+        `<div class="result-card">
+          <div class="result-label">${i.label}</div>
+          <div class="result-value ${i.cls || ''}">${i.value}</div>
+        </div>`
+      ).join('');
+    }
+
+    // --- EMI ---
+    let amortVisible = true;
+
+    function toggleAmort() {
+      const wrap = document.getElementById('amort-table-wrap');
+      const footer = document.getElementById('amort-footer');
+      const btn = document.getElementById('amort-toggle-btn');
+      amortVisible = !amortVisible;
+      wrap.style.display = amortVisible ? '' : 'none';
+      footer.style.display = amortVisible ? '' : 'none';
+      btn.textContent = amortVisible ? 'Hide Table' : 'Show Table';
+    }
+
+    function calcEMI() {
+      const P = +document.getElementById('emi-principal').value;
+      const annualRate = +document.getElementById('emi-rate').value;
+      const n = +document.getElementById('emi-tenure').value;
+      if (!P || !annualRate || !n) return;
+
+      const r   = annualRate / 12 / 100;
+      const emi = P * r * Math.pow(1+r, n) / (Math.pow(1+r, n) - 1);
+      const totalPayment = emi * n;
+      const totalInterest = totalPayment - P;
+
+      renderResults('emi-results', [
+        { label: 'Monthly EMI',    value: '₹' + fmt(emi),                    cls: 'blue' },
+        { label: 'Total Interest', value: '₹' + fmtInt(totalInterest) },
+        { label: 'Total Payment',  value: '₹' + fmtInt(totalPayment) },
+        { label: 'Interest %',     value: fmt(totalInterest / P * 100) + '%' }
+      ]);
+
+      // Build amortization schedule
+      const startDate = new Date();
+      let balance = P;
+      let totalPaid = 0;
+      let rows = '';
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+      for (let i = 1; i <= n; i++) {
+        const interestAmt  = balance * r;
+        const principalAmt = emi - interestAmt;
+        balance = Math.max(0, balance - principalAmt);
+        totalPaid += emi;
+
+        const d = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
+        const monthLabel = months[d.getMonth()] + ' ' + d.getFullYear();
+
+        // Highlight last row
+        const isLast = i === n;
+        rows += `<tr${isLast ? ' style="background:#1a2a1a"' : ''}>
+          <td>${i}. ${monthLabel}</td>
+          <td class="e-cell">₹${fmt(emi)}</td>
+          <td class="p-cell">₹${fmt(principalAmt)}</td>
+          <td class="i-cell">₹${fmt(interestAmt)}</td>
+          <td>₹${fmt(totalPaid)}</td>
+          <td class="b-cell">₹${fmt(balance)}</td>
+        </tr>`;
+      }
+
+      document.getElementById('amort-body').innerHTML = rows;
+
+      // Footer summary
+      document.getElementById('amort-footer').innerHTML = `
+        <div class="amort-foot-item">
+          <div class="amort-foot-label">Total Months</div>
+          <div class="amort-foot-value" style="color:#fff">${n}</div>
+        </div>
+        <div class="amort-foot-item">
+          <div class="amort-foot-label">Principal Paid</div>
+          <div class="amort-foot-value" style="color:#4f6ef7">₹${fmtInt(P)}</div>
+        </div>
+        <div class="amort-foot-item">
+          <div class="amort-foot-label">Interest Paid</div>
+          <div class="amort-foot-value" style="color:#f59e0b">₹${fmtInt(totalInterest)}</div>
+        </div>
+        <div class="amort-foot-item">
+          <div class="amort-foot-label">Total Paid</div>
+          <div class="amort-foot-value" style="color:#4caf82">₹${fmtInt(totalPayment)}</div>
+        </div>`;
+
+      // Show the table
+      amortVisible = true;
+      document.getElementById('amort-wrap').classList.remove('hidden');
+      document.getElementById('amort-table-wrap').style.display = '';
+      document.getElementById('amort-footer').style.display = '';
+      document.getElementById('amort-toggle-btn').textContent = 'Hide Table';
+    }
+
+    // --- Budget ---
+    function calcBudget() {
+      const income        = +document.getElementById('budget-income').value;
+      const rent          = +document.getElementById('budget-rent').value;
+      const food          = +document.getElementById('budget-food').value;
+      const transport     = +document.getElementById('budget-transport').value;
+      const utilities     = +document.getElementById('budget-utilities').value;
+      const entertainment = +document.getElementById('budget-entertainment').value;
+      const other         = +document.getElementById('budget-other').value;
+      const totalExp = rent + food + transport + utilities + entertainment + other;
+      const savings  = income - totalExp;
+      const savPct   = income ? (savings / income * 100) : 0;
+      renderResults('budget-results', [
+        { label: 'Total Expenses',    value: '₹' + fmtInt(totalExp) },
+        { label: 'Remaining Balance', value: '₹' + fmtInt(savings), cls: savings >= 0 ? 'green' : '' },
+        { label: 'Savings Rate',      value: fmt(savPct) + '%',      cls: savPct >= 20 ? 'green' : '' },
+        { label: 'Monthly Income',    value: '₹' + fmtInt(income) }
+      ]);
+    }
+
+    // --- Savings Goal ---
+    function calcSavings() {
+      const target  = +document.getElementById('sav-target').value;
+      const current = +document.getElementById('sav-current').value;
+      const monthly = +document.getElementById('sav-monthly').value;
+      const rate    = (+document.getElementById('sav-rate').value) / 12 / 100;
+      const remaining = target - current;
+      let months;
+      if (rate === 0) {
+        months = Math.ceil(remaining / monthly);
+      } else {
+        months = Math.ceil(Math.log(1 + remaining * rate / monthly) / Math.log(1 + rate));
+      }
+      const years    = Math.floor(months / 12);
+      const remMonths = months % 12;
+      const progress = Math.min(100, current / target * 100);
+      renderResults('sav-results', [
+        { label: 'Time to Goal',  value: (years > 0 ? years + 'y ' : '') + (remMonths > 0 ? remMonths + 'm' : (!years ? '0m' : '')), cls: 'blue' },
+        { label: 'Still Needed',  value: '₹' + fmtInt(remaining) },
+        { label: 'Progress',      value: fmt(progress) + '%',  cls: 'green' },
+        { label: 'Total Months',  value: months + ' months' }
+      ]);
+    }
+
+    // --- SIP ---
+    function calcSIP() {
+      const P = +document.getElementById('sip-amount').value;
+      const r = (+document.getElementById('sip-rate').value) / 12 / 100;
+      const n = +document.getElementById('sip-years').value * 12;
+      const fv       = P * (Math.pow(1+r, n) - 1) / r * (1+r);
+      const invested = P * n;
+      const gains    = fv - invested;
+      renderResults('sip-results', [
+        { label: 'Estimated Returns', value: '₹' + fmtInt(fv),       cls: 'green' },
+        { label: 'Total Invested',    value: '₹' + fmtInt(invested) },
+        { label: 'Wealth Gained',     value: '₹' + fmtInt(gains),    cls: 'blue' },
+        { label: 'Return Multiple',   value: fmt(fv / invested) + 'x' }
+      ]);
+    }
+
+    // --- GST ---
+    function calcGST() {
+      const amount = +document.getElementById('gst-amount').value;
+      const rate   = +document.getElementById('gst-rate').value;
+      const type   = document.getElementById('gst-type').value;
+      let baseAmt, gstAmt, totalAmt;
+      if (type === 'exclusive') {
+        baseAmt  = amount;
+        gstAmt   = amount * rate / 100;
+        totalAmt = amount + gstAmt;
+      } else {
+        totalAmt = amount;
+        baseAmt  = amount * 100 / (100 + rate);
+        gstAmt   = totalAmt - baseAmt;
+      }
+      renderResults('gst-results', [
+        { label: 'Base Amount',          value: '₹' + fmt(baseAmt) },
+        { label: `GST (${rate}%)`,       value: '₹' + fmt(gstAmt),   cls: 'blue' },
+        { label: `CGST (${rate/2}%)`,    value: '₹' + fmt(gstAmt/2) },
+        { label: `SGST (${rate/2}%)`,    value: '₹' + fmt(gstAmt/2) },
+        { label: 'Total Amount',         value: '₹' + fmt(totalAmt), cls: 'green' }
+      ]);
+    }
+
+    // --- Currency ---
+    const rates = { INR:1, USD:0.012, EUR:0.011, GBP:0.0094, AED:0.044, JPY:1.87, CAD:0.016, AUD:0.018, SGD:0.016 };
+    function calcCurrency() {
+      const amount = +document.getElementById('curr-amount').value;
+      const from   = document.getElementById('curr-from').value;
+      const to     = document.getElementById('curr-to').value;
+      const inINR  = amount / rates[from];
+      const result = inINR * rates[to];
+      const rate1  = rates[to] / rates[from];
+      renderResults('curr-results', [
+        { label: 'Converted Amount', value: to + ' ' + fmt(result),  cls: 'green' },
+        { label: '1 ' + from + ' =', value: to + ' ' + fmt(rate1),   cls: 'blue' },
+        { label: 'You entered',      value: from + ' ' + fmt(amount) },
+        { label: 'You get',          value: to + ' ' + fmt(result) }
+      ]);
+    }
+
+    // --- Unit Converter ---
+    const unitDefs = {
+      length:      { units: ['mm','cm','m','km','inch','foot','yard','mile'],       toBase: { mm:0.001, cm:0.01, m:1, km:1000, inch:0.0254, foot:0.3048, yard:0.9144, mile:1609.344 } },
+      weight:      { units: ['mg','g','kg','tonne','oz','lb'],                      toBase: { mg:0.000001, g:0.001, kg:1, tonne:1000, oz:0.028349, lb:0.453592 } },
+      temperature: { units: ['Celsius','Fahrenheit','Kelvin'],                      toBase: null },
+      area:        { units: ['mm²','cm²','m²','km²','sq ft','sq in','acre','hectare'], toBase: { 'mm²':0.000001,'cm²':0.0001,'m²':1,'km²':1000000,'sq ft':0.092903,'sq in':0.000645,'acre':4046.86,'hectare':10000 } },
+      volume:      { units: ['ml','l','m³','tsp','tbsp','cup','fl oz','gallon'],    toBase: { ml:0.001, l:1, 'm³':1000, tsp:0.00492892, tbsp:0.0147868, cup:0.236588, 'fl oz':0.0295735, gallon:3.78541 } }
+    };
+
+    let currentUnitType = 'length';
+
+    function setUnitType(type, btn) {
+      currentUnitType = type;
+      document.querySelectorAll('.unit-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      const def     = unitDefs[type];
+      const fromSel = document.getElementById('unit-from');
+      const toSel   = document.getElementById('unit-to');
+      fromSel.innerHTML = def.units.map((u, i) => `<option value="${u}"${i===0?' selected':''}>${u}</option>`).join('');
+      toSel.innerHTML   = def.units.map((u, i) => `<option value="${u}"${i===1?' selected':''}>${u}</option>`).join('');
+      document.getElementById('unit-results').innerHTML = '';
+    }
+
+    function calcUnit() {
+      const value = +document.getElementById('unit-value').value;
+      const from  = document.getElementById('unit-from').value;
+      const to    = document.getElementById('unit-to').value;
+      let result;
+      if (currentUnitType === 'temperature') {
+        let celsius;
+        if (from === 'Celsius')    celsius = value;
+        else if (from === 'Fahrenheit') celsius = (value - 32) * 5/9;
+        else celsius = value - 273.15;
+        if (to === 'Celsius')           result = celsius;
+        else if (to === 'Fahrenheit')   result = celsius * 9/5 + 32;
+        else                            result = celsius + 273.15;
+      } else {
+        const def  = unitDefs[currentUnitType];
+        const base = value * def.toBase[from];
+        result = base / def.toBase[to];
+      }
+      renderResults('unit-results', [
+        { label: 'Result',         value: +result.toFixed(6) + ' ' + to, cls: 'green' },
+        { label: 'Input',          value: value + ' ' + from },
+        { label: '1 ' + from + ' =', value: currentUnitType === 'temperature' ? '(varies)' : +(unitDefs[currentUnitType].toBase[from] / unitDefs[currentUnitType].toBase[to]).toFixed(6) + ' ' + to }
+      ]);
+    }
+
+    // Init
+    setUnitType('length', document.querySelector('.unit-tab'));
+    calcEMI();
+</script>
 </body>
 </html>
